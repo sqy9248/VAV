@@ -3,7 +3,7 @@ from PyQt5.QtWidgets import (QHBoxLayout, QVBoxLayout, QLabel, QPushButton, QLin
 from PyQt5.QtGui import QFont, QCursor
 from PyQt5.QtCore import Qt, QThread, pyqtSignal
 from .utils import MyWidget
-from word2pdf import RpDoc
+from word2pdf2 import RpDoc
 import pythoncom
 from enum import IntEnum
 from tc2tb import TCDoc
@@ -101,14 +101,15 @@ class PathView(MyWidget):
     def _on_clicked_browse(self):
         sender = self.sender()
         le = self._bn_le[sender]
-        file_name, _ = QFileDialog.getOpenFileName(None, '打开', './')
+        file_name, _ = QFileDialog.getOpenFileName(self, '打开', '', options=QFileDialog.DontUseNativeDialog)
         le.setText(file_name)
 
     def _load_btn_pressed(self):
         input_file = self._le.text()
         base_name, ext = os.path.splitext(input_file)
         init_name = base_name + self._out_ext
-        file_name, _ = QFileDialog.getSaveFileName(None, '输出', init_name, '*'+self._out_ext)
+        file_name, _ = QFileDialog.getSaveFileName(self, '输出', init_name, '*'+self._out_ext,
+            options=QFileDialog.DontUseNativeDialog)
         if file_name != '':
             self._out_file = change_path_to_word_style(file_name)
             self._load_btn.setEnabled(False)
@@ -175,61 +176,75 @@ class Tc2TbView(PathView):
 
 
 class Rp2PdfView(PathView):
-    _title = '报 告 转 PDF'
+    _title = 'Word 转 PDF'
     _out_ext = '.pdf'
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self._save_view = sv = SaveView()
-        sv.new_item_sig.connect(self._add_cb_item)
-
-        main_layout = self._main_layout
-        lb2 = QLabel('Attachments: ')
-        main_layout.addWidget(lb2, 1, 0)
-        self._cb = cb = QComboBox()
-        items = g_cfg.options(ATTACHMENTS)
-        cb.addItems(items)
-        # 必须先addItems再connect，何哉？
-        cb.currentTextChanged.connect(self._on_change_template)
-        # cb.customContextMenuRequested.connect(self._generate_menu)
-        main_layout.addWidget(cb, 1, 1)
-        self._le2 = le2 = QLineEdit()
-        self._on_change_template()
-        main_layout.addWidget(le2, 1, 2)
-        save_btn = QPushButton('Save')
-        save_btn.clicked.connect(self._on_clicked_save)
-        main_layout.addWidget(save_btn, 1, 3)
 
     def _load(self):
         # 在线程中调用COM要初始化
         pythoncom.CoInitialize()
         path = self._le.text()
-        xls_names = self._le2.text().split(';')
-        doc = RpDoc(path, xls_names)
+        doc = RpDoc(path)
         doc.export(self._out_file)
 
-    def _on_change_template(self):
-        t = self._cb.currentText()
-        value = g_cfg.get(ATTACHMENTS, t)
-        self._le2.setText(value)
-
-    def _on_clicked_save(self):
-        self._save_view.set_name(self._cb.currentText())
-        self._save_view.set_value(self._le2.text())
-        self._save_view.show()
-
-    def _add_cb_item(self, new_item):
-        item_total = self._cb.count()
-        has_item = False
-        for i in range(item_total):
-            if self._cb.itemText(i) == new_item:
-                has_item = True
-                break
-        if not has_item:
-            self._cb.addItem(new_item)
-            self._cb.setCurrentText(new_item)
-            # self._cb.setFixedWidth(len(new_item))
-        self._on_change_template()
+# class Rp2PdfView(PathView):
+#     _title = '报 告 转 PDF'
+#     _out_ext = '.pdf'
+#
+#     def __init__(self, parent=None):
+#         super().__init__(parent)
+#         self._save_view = sv = SaveView()
+#         sv.new_item_sig.connect(self._add_cb_item)
+#
+#         main_layout = self._main_layout
+#         lb2 = QLabel('Attachments: ')
+#         main_layout.addWidget(lb2, 1, 0)
+#         self._cb = cb = QComboBox()
+#         items = g_cfg.options(ATTACHMENTS)
+#         cb.addItems(items)
+#         # 必须先addItems再connect，何哉？
+#         cb.currentTextChanged.connect(self._on_change_template)
+#         # cb.customContextMenuRequested.connect(self._generate_menu)
+#         main_layout.addWidget(cb, 1, 1)
+#         self._le2 = le2 = QLineEdit()
+#         self._on_change_template()
+#         main_layout.addWidget(le2, 1, 2)
+#         save_btn = QPushButton('Save')
+#         save_btn.clicked.connect(self._on_clicked_save)
+#         main_layout.addWidget(save_btn, 1, 3)
+#
+#     def _load(self):
+#         # 在线程中调用COM要初始化
+#         pythoncom.CoInitialize()
+#         path = self._le.text()
+#         xls_names = self._le2.text().split(';')
+#         doc = RpDoc(path, xls_names)
+#         doc.export(self._out_file)
+#
+#     def _on_change_template(self):
+#         t = self._cb.currentText()
+#         value = g_cfg.get(ATTACHMENTS, t)
+#         self._le2.setText(value)
+#
+#     def _on_clicked_save(self):
+#         self._save_view.set_name(self._cb.currentText())
+#         self._save_view.set_value(self._le2.text())
+#         self._save_view.show()
+#
+#     def _add_cb_item(self, new_item):
+#         item_total = self._cb.count()
+#         has_item = False
+#         for i in range(item_total):
+#             if self._cb.itemText(i) == new_item:
+#                 has_item = True
+#                 break
+#         if not has_item:
+#             self._cb.addItem(new_item)
+#             self._cb.setCurrentText(new_item)
+#             # self._cb.setFixedWidth(len(new_item))
+#         self._on_change_template()
 
     # def _generate_menu(self, pos):
     #     menu = QMenu()
@@ -237,51 +252,51 @@ class Rp2PdfView(PathView):
     #     action = menu.exec_(self._cb.mapToGlobal(pos))
 
 
-class SaveView(MyWidget):
-    new_item_sig = pyqtSignal(str)
-
-    def __init__(self):
-        super().__init__()
-        self.resize(500, 280)
-        v_layout = QVBoxLayout()
-        lb1 = QLabel('Name: ')
-        v_layout.addWidget(lb1)
-        self._le1 = le1 = QLineEdit()
-        v_layout.addWidget(le1)
-        lb2 = QLabel('Value: ')
-        v_layout.addWidget(lb2)
-        self._le = le = QLineEdit()
-        v_layout.addWidget(le)
-        v_layout.addStretch(1)
-        h_layout = QHBoxLayout()
-        h_layout.addStretch(1)
-        save_btn = QPushButton('Save')
-        save_btn.clicked.connect(self._on_clicked_save)
-        h_layout.addWidget(save_btn)
-        close_btn = QPushButton('Close')
-        close_btn.clicked.connect(self.close)
-        h_layout.addWidget(close_btn)
-        v_layout.addLayout(h_layout)
-        self.setLayout(v_layout)
-
-    def set_name(self, name):
-        self._le1.setText(name)
-
-    def set_value(self, value):
-        self._le.setText(value)
-
-    def _on_clicked_save(self):
-        name = self._le1.text()
-        if name == '':
-            QMessageBox.warning(self, 'VAV', '\'Name: \'不能为空', QMessageBox.Cancel)
-        else:
-            value = self._le.text()
-            if value == '':
-                QMessageBox.warning(self, 'VAV', '\'Value: \'不能为空', QMessageBox.Cancel)
-            else:
-                g_cfg.set(ATTACHMENTS, name, value)
-                self.new_item_sig.emit(name)
-                self.close()
+# class SaveView(MyWidget):
+#     new_item_sig = pyqtSignal(str)
+#
+#     def __init__(self):
+#         super().__init__()
+#         self.resize(500, 280)
+#         v_layout = QVBoxLayout()
+#         lb1 = QLabel('Name: ')
+#         v_layout.addWidget(lb1)
+#         self._le1 = le1 = QLineEdit()
+#         v_layout.addWidget(le1)
+#         lb2 = QLabel('Value: ')
+#         v_layout.addWidget(lb2)
+#         self._le = le = QLineEdit()
+#         v_layout.addWidget(le)
+#         v_layout.addStretch(1)
+#         h_layout = QHBoxLayout()
+#         h_layout.addStretch(1)
+#         save_btn = QPushButton('Save')
+#         save_btn.clicked.connect(self._on_clicked_save)
+#         h_layout.addWidget(save_btn)
+#         close_btn = QPushButton('Close')
+#         close_btn.clicked.connect(self.close)
+#         h_layout.addWidget(close_btn)
+#         v_layout.addLayout(h_layout)
+#         self.setLayout(v_layout)
+#
+#     def set_name(self, name):
+#         self._le1.setText(name)
+#
+#     def set_value(self, value):
+#         self._le.setText(value)
+#
+#     def _on_clicked_save(self):
+#         name = self._le1.text()
+#         if name == '':
+#             QMessageBox.warning(self, 'VAV', '\'Name: \'不能为空', QMessageBox.Cancel)
+#         else:
+#             value = self._le.text()
+#             if value == '':
+#                 QMessageBox.warning(self, 'VAV', '\'Value: \'不能为空', QMessageBox.Cancel)
+#             else:
+#                 g_cfg.set(ATTACHMENTS, name, value)
+#                 self.new_item_sig.emit(name)
+#                 self.close()
 
 
 # class VRqView(PathView):

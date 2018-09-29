@@ -7,14 +7,14 @@ from utils import logger, g_cur_path
 import logging
 
 
-about_text = """Version: 0.0.1
-Build on 2018-9-26
+about_text = """Version: 0.0.2
+Build on 2018-9-29
 Copyright © 2018 CASCO
 Author: Heisenberg
 E-mail: songqingyang@casco.com.cn
 
 需要你的电脑上已安装：
-MS Word（2010或更高版本）;
+MS Office(2013或更高)
 Adobe Acrobat
 
 发现Bug或有改进意见请联系我！

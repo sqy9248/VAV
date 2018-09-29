@@ -25,6 +25,10 @@ def change_path_to_word_style(path):
     return path.replace('/', '\\')
 
 
+def f_int(in_value):
+    return int(float(in_value))
+
+
 class Config(object):
     ATTACHMENTS = 'attachments'
     GENERAL = 'general'

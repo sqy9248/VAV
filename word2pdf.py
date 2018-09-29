@@ -107,13 +107,22 @@ class RpDoc(object):
 
     def _word2pdf(self, doc_path, pdf_path):
         doc = self._word.Documents.Open(doc_path, ReadOnly=1)
-        self._word.ActiveWindow.View.RevisionsFilter.Markup = MARKDOWN_NONE
-        self._word.ActiveWindow.View.RevisionsFilter.View = FINAL_VISION
+        self._set_word_revision_view_final()
         if os.path.exists(pdf_path):
             os.remove(pdf_path)
-        # doc.SaveAs(pdf_path, 17)
         doc.SaveAs(pdf_path, FORMAT_PDF)
         doc.Close()
+
+    def _set_word_revision_view_final(self):
+        version = self._word.Version
+        if version == '16.0':
+            self._word.ActiveWindow.View.RevisionsFilter.Markup = MARKDOWN_NONE
+            self._word.ActiveWindow.View.RevisionsFilter.View = FINAL_VISION
+        elif version == '10.0':
+            self._word.ActiveWindow.View.ShowRevisionsAndComments = False
+            self._word.ActiveWindow.View.RevisionsView = FINAL_VISION
+        else:
+            raise IOError('不支持的Word版本:%s.支持16,10.' % version)
 
     def _pdf_add_attachment(self, pdf_path):
         logger.info('开始向PDF插入附件')
@@ -129,10 +138,10 @@ class RpDoc(object):
         logger.info('向PDF插入附件成功')
 
 
-# if __name__ == '__main__':
-#     the_path = 'f:\\python_project\\vat_tool\\RA_12008_TSRS-KA_CASCO_TSRS ATO Function Test Report.doc'
-#     xls_names = ['1', '2', '3', '4']
-#     out_path = 'f:\\python_project\\vat_tool\\RA_12008_TSRS-KA_CASCO_TSRS ATO Function Test Report.pdf'
-#     idoc = RpDoc(the_path, xls_names)
-#     idoc.export(out_path)
+if __name__ == '__main__':
+    the_path = 'f:\\python_project\\vat_tool\\RA_12008_TSRS-KA_CASCO_TSRS ATO Function Test Report.doc'
+    xls_names = ['1', '2', '3', '4']
+    out_path = 'f:\\python_project\\vat_tool\\RA_12008_TSRS-KA_CASCO_TSRS ATO Function Test Report.pdf'
+    idoc = RpDoc(the_path, xls_names)
+    idoc.export(out_path)
 
