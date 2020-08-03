@@ -11,6 +11,7 @@ class ViewIndex(IntEnum):
     RP2PDF = 3
     VAT_V_RQ = 4
     VAT_V_TC = 5
+    TC_TRAN = 6
 
 
 class SidePix(QWidget):

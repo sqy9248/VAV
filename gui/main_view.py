@@ -2,13 +2,13 @@ from PyQt5.QtWidgets import (QMainWindow, QAction, qApp, QHBoxLayout, QVBoxLayou
 from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import Qt, QObject, pyqtSignal
 from .utils import MyWidget, ViewIndex
-from .path_view import Tc2TbView, Rp2PdfView
+from .path_view import Tc2TbView, Rp2PdfView, TcTranViw
 from utils import logger, g_cur_path
 import logging
 
 
-about_text = """Version: 0.0.2
-Build on 2018-9-29
+about_text = """Version: 0.0.4
+Build on 2020-08-03
 Copyright © 2018 CASCO
 Author: Heisenberg
 E-mail: songqingyang@casco.com.cn
@@ -83,6 +83,9 @@ class InitView(MyWidget):
         # lb5 = QLabel('<a href=5>VAT验证用例')
         # lb5.linkActivated.connect(self._change)
         # v_layout.addWidget(lb5)
+        lb4 = QLabel('<a href=6>报告翻译')
+        lb4.linkActivated.connect(self._change)
+        v_layout.addWidget(lb4)
         v_layout.addStretch(1)
         h_layout = QHBoxLayout()
         h_layout.addStretch(1)
@@ -139,6 +142,9 @@ class MainWindow(QMainWindow):
         # vat_v_tc_act = QAction('&VAT验证用例', self)
         # vat_v_tc_act.triggered.connect(self._change_to_vtc_view)
         # file_menu.addAction(vat_v_tc_act)
+        tc_tran_act = QAction('&用例翻译', self)
+        tc_tran_act.triggered.connect(self._change_to_tc_tran_view)
+        file_menu.addAction(tc_tran_act)
         quit_act = QAction('&Quit', self)
         quit_act.setShortcut('Ctrl+Q')
         quit_act.triggered.connect(qApp.quit)
@@ -153,15 +159,20 @@ class MainWindow(QMainWindow):
 
     def _change_view_by_index(self, index):
         if index == ViewIndex.RQ2TB:
-            self._change_to_rq2tb_view()
+            # self._change_to_rq2tb_view()
+            pass
         elif index == ViewIndex.TC2TB:
             self._change_to_tc2tb_view()
         elif index == ViewIndex.RP2PDF:
             self._change_to_rp2pdf_view()
         elif index == ViewIndex.VAT_V_RQ:
-            self._change_to_vrq_view()
+            # self._change_to_vrq_view()
+            pass
         elif index == ViewIndex.VAT_V_TC:
-            self._change_to_vtc_view()
+            # self._change_to_vtc_view()
+            pass
+        elif index == ViewIndex.TC_TRAN:
+            self._change_to_tc_tran_view()
         else:
             raise ValueError('wrong view index')
 
@@ -169,6 +180,10 @@ class MainWindow(QMainWindow):
     #     self.resize(660, 280)
     #     view = Rq2TbView(self)
     #     self.setCentralWidget(view)
+
+    def _change_to_tc_tran_view(self):
+        self.resize(660, 280)
+        self.setCentralWidget(TcTranViw())
 
     def _change_to_tc2tb_view(self):
         self.resize(660, 280)

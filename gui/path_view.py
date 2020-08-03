@@ -1,13 +1,13 @@
 from PyQt5.QtWidgets import (QHBoxLayout, QVBoxLayout, QLabel, QPushButton, QLineEdit, QFileDialog, QGridLayout,
-    QComboBox, QMessageBox, qApp, QMenu, QTreeWidget)
-from PyQt5.QtGui import QFont, QCursor
+    QMessageBox, qApp)
+from PyQt5.QtGui import QFont
 from PyQt5.QtCore import Qt, QThread, pyqtSignal
 from .utils import MyWidget
 from word2pdf2 import RpDoc
 import pythoncom
 from enum import IntEnum
 from tc2tb import TCDoc
-from utils import g_cfg, change_path_to_word_style
+from utils import change_path_to_word_style
 import os
 
 
@@ -45,8 +45,9 @@ class Worker(QThread):
 
 
 class PathView(MyWidget):
-    _title = 'title'
-    _out_ext = '.*'
+    _TITLE = 'title'
+    _TAIL = ''
+    _OUT_EXT = '.*'
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -55,7 +56,7 @@ class PathView(MyWidget):
         self._les = []
         self._bn_le = {}
         v_layout = QVBoxLayout()
-        title_lb = QLabel(self._title)
+        title_lb = QLabel(self._TITLE)
         font = QFont()
         font.setBold(True)
         title_lb.setFont(font)
@@ -107,8 +108,8 @@ class PathView(MyWidget):
     def _load_btn_pressed(self):
         input_file = self._le.text()
         base_name, ext = os.path.splitext(input_file)
-        init_name = base_name + self._out_ext
-        file_name, _ = QFileDialog.getSaveFileName(self, '输出', init_name, '*'+self._out_ext,
+        init_name = base_name + self._TAIL + self._OUT_EXT
+        file_name, _ = QFileDialog.getSaveFileName(self, '输出', init_name, '*'+self._OUT_EXT,
             options=QFileDialog.DontUseNativeDialog)
         if file_name != '':
             self._out_file = change_path_to_word_style(file_name)
@@ -161,8 +162,8 @@ class PathView(MyWidget):
 
 
 class Tc2TbView(PathView):
-    _title = '用 例 转 表 格'
-    _out_ext = '.xls'
+    _TITLE = '用 例 转 表 格'
+    _OUT_EXT = '.xls'
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -172,12 +173,27 @@ class Tc2TbView(PathView):
         pythoncom.CoInitialize()
         path = self._le.text()
         doc = TCDoc(path)
-        doc.export(self._out_file)
+        doc.export_to_excel(self._out_file)
+
+
+class TcTranViw(PathView):
+    _TITLE = '用 例 翻 译'
+
+    def _load_btn_pressed(self):
+        self._load_btn.setEnabled(False)
+        self._thread.start()
+
+    def _load(self):
+        # 在线程中调用COM要初始化
+        pythoncom.CoInitialize()
+        path = self._le.text()
+        doc = TCDoc(path)
+        doc.translate()
 
 
 class Rp2PdfView(PathView):
-    _title = 'Word 转 PDF'
-    _out_ext = '.pdf'
+    _TITLE = 'Word 转 PDF'
+    _OUT_EXT = '.pdf'
 
     def __init__(self, parent=None):
         super().__init__(parent)

@@ -138,10 +138,10 @@ class RpDoc(object):
         logger.info('向PDF插入附件成功')
 
 
-if __name__ == '__main__':
-    the_path = 'f:\\python_project\\vat_tool\\RA_12008_TSRS-KA_CASCO_TSRS ATO Function Test Report.doc'
-    xls_names = ['1', '2', '3', '4']
-    out_path = 'f:\\python_project\\vat_tool\\RA_12008_TSRS-KA_CASCO_TSRS ATO Function Test Report.pdf'
-    idoc = RpDoc(the_path, xls_names)
-    idoc.export(out_path)
+# if __name__ == '__main__':
+#     the_path = 'f:\\python_project\\vat_tool\\RA_12008_TSRS-KA_CASCO_TSRS ATO Function Test Report.doc'
+#     xls_names = ['1', '2', '3', '4']
+#     out_path = 'f:\\python_project\\vat_tool\\RA_12008_TSRS-KA_CASCO_TSRS ATO Function Test Report.pdf'
+#     idoc = RpDoc(the_path, xls_names)
+#     idoc.export(out_path)
 

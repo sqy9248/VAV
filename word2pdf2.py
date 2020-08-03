@@ -2,7 +2,7 @@ from win32com.client.dynamic import Dispatch, ERRORS_BAD_CONTEXT
 import winerror
 import os
 import win32api
-from PyUserInput.pykeyboard import PyKeyboard
+from pykeyboard import PyKeyboard
 import time
 from utils import logger, change_path_to_word_style, f_int
 import shutil
@@ -22,7 +22,7 @@ _p_splitext = os.path.splitext
 
 
 class RpDoc(object):
-    temp_path = 'd:\\vav_temp'
+    temp_dir = 'vav_temp'
 
     def __init__(self, path):
         self._path = path = change_path_to_word_style(path)
@@ -33,9 +33,8 @@ class RpDoc(object):
         if self._extension not in ('.doc', '.docx'):
             logger.warning('%s不是有效文件类型,请选择.doc或.docx类型的文件' % self._extension)
             raise ValueError('文件类型无效')
-        # shutil.rmtree(self.temp_path)
-        if not os.path.isdir(self.temp_path):
-            os.mkdir(self.temp_path)
+        # self.temp_path = 'd:\\vav_temp'
+        self.temp_path = ''
 
     def _clear_temp_path(self):
         if os.path.isdir(self.temp_path):
@@ -46,12 +45,19 @@ class RpDoc(object):
         version = word.Version
         if f_int(version) < 13:
             logger.warning('Word 版本应该为2013或更高')
-            raise IOError('Word 版本过低')
+            # raise IOError('Word 版本过低')
         word.Visible = 0
         word.DisplayAlerts = 0
         excel = Dispatch('Excel.Application')
         excel.Visible = 0
         excel.DisplayAlerts = 0
+        dir_path, file_name = os.path.split(out_path)
+        self.temp_path = _p_join(dir_path, self.temp_dir)
+        if os.path.isdir(self.temp_path):
+            for file in os.listdir(self.temp_path):
+                os.remove(file)
+        else:
+            os.mkdir(self.temp_path)
         self._extract_attachments(word, excel)
         excel.Quit()
         self._set_word_revision_view_final(word)
@@ -60,6 +66,7 @@ class RpDoc(object):
         word.Quit()
         self._pdf_add_attachment(out_path)
         self._clear_temp_path()
+        win32api.ShellExecute(0, 'open', out_path, '', '', 1)
 
     @staticmethod
     def _set_word_revision_view_final(word):
@@ -73,7 +80,6 @@ class RpDoc(object):
         #     word.ActiveWindow.View.RevisionsView = FINAL_VISION
         else:
             logger.warning('word 版本过低，PDF可能留有标记')
-            # raise IOError('不支持的Word版本:%s.支持16,10.' % version)
 
     def _extract_attachments(self, word, excel):
         doc = word.Documents.Open(self._path)
@@ -112,6 +118,8 @@ class RpDoc(object):
                 path = _p_join(self.temp_path, name)
                 jso.importDataObject(name, path)
             jso.saveAs(pdf_path)
+        else:
+            raise IOError('无法打开%s' % pdf_path)
         pd_doc.Close()
         logger.info('向PDF插入附件成功')
 
